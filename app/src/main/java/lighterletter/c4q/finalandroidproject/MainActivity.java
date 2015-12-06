@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity
 
     public void makeCall(String mediaType, String mediaQuery) {
 
-        ITunesService SCservice = ITunesRestAdapter.getService();
+        AppleStoreService SCservice = AppleStoreRestAdapter.getService();
         SCservice.getRecentTracks(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()),
                 mediaType,
                 mediaQuery,

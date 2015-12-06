@@ -9,7 +9,7 @@ import retrofit.http.Query;
 /**
  * Created by c4q-john on 12/5/15.
  */
-public interface ITunesService {
+public interface AppleStoreService {
 
     @GET("/search")
     public void getRecentTracks(@Query("created_at[from]") String date,
