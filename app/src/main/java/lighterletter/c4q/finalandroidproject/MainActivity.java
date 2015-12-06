@@ -2,7 +2,6 @@ package lighterletter.c4q.finalandroidproject;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -29,51 +28,45 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
-    private List<Track> mlistItems;
-    private TrackAdapter mAdapter;
+    private List<SearchItem> mlistItems;
+    private ItemAdapter mAdapter;
+
+    EditText searchTerm;
+    String mediaType = "all";
+    String mediaQuery = "all";
+    Toolbar toolbar;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setTitle(mediaType);
 
-        mlistItems = new ArrayList<Track>();
+
+        mlistItems = new ArrayList<SearchItem>();
         ListView listView = (ListView) findViewById(R.id.track_list_view);
-        mAdapter = new TrackAdapter(this, mlistItems);
+        mAdapter = new ItemAdapter(this, mlistItems);
         listView.setAdapter(mAdapter);
 
 
-        SoundCloudService SCservice = SoundCloud.getService();
-        SCservice.getRecentTracks(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()), new Callback<QueryResponse>() {
-
-            @Override
-            public void success(QueryResponse queryResponse, Response response) {
-                List<Track> tracks = queryResponse.getResults();
-                loadTracks(tracks);
-                Log.d(TAG, "First Track title: " + tracks.get(0).getArtistName());
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.d(TAG, "RF Error: " + error);
-            }
-        });
-
-        final EditText search_field = (EditText) findViewById(R.id.search_field);
-
+        searchTerm = (EditText) findViewById(R.id.search_field);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                //Config.searchTerm = String.valueOf(search_field.getText());
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                if (searchTerm != null) {
+                    mediaQuery = searchTerm.getText().toString();
+                    if (!mediaQuery.equals(null)) {
+                        makeCall(mediaType, mediaQuery);
+                    }
+                }
             }
         });
+        makeCall(mediaType, mediaQuery);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -85,9 +78,31 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
-    private void loadTracks(List<Track> tracks){
+
+    public void makeCall(String mediaType, String mediaQuery) {
+
+        ITunesService SCservice = ITunesRestAdapter.getService();
+        SCservice.getRecentTracks(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()),
+                mediaType,
+                mediaQuery,
+                new Callback<QueryResponse>() {
+                    @Override
+                    public void success(QueryResponse queryResponse, Response response) {
+                        List<SearchItem> searchItems = queryResponse.getResults();
+                        loadTracks(searchItems);
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Log.d(TAG, "RF Error: " + error);
+                    }
+                });
+
+    }
+
+    private void loadTracks(List<SearchItem> searchItems) {
         mlistItems.clear();
-        mlistItems.addAll(tracks);
+        mlistItems.addAll(searchItems);
         mAdapter.notifyDataSetChanged();
     }
 
@@ -130,16 +145,34 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            // Handle the camera action
+            mediaType = "music";
+            makeCall(mediaType, mediaQuery);
+            this.toolbar.setTitle("Bumpin Beats!");
+
         } else if (id == R.id.nav_gallery) {
+            mediaType = "software";
+            makeCall(mediaType, mediaQuery);
+            toolbar.setTitle("Download All The Things!");
 
         } else if (id == R.id.nav_slideshow) {
+            mediaType = "movie";
+            makeCall(mediaType, mediaQuery);
+            toolbar.setTitle("Such Drama Wow!");
 
         } else if (id == R.id.nav_manage) {
+            mediaType = "podcast";
+            makeCall(mediaType, mediaQuery);
+            toolbar.setTitle("People Talking!");
 
         } else if (id == R.id.nav_share) {
+            mediaType = "audiobook";
+            makeCall(mediaType, mediaQuery);
+            toolbar.setTitle("Longest Songs Ever!");
 
         } else if (id == R.id.nav_send) {
+            mediaType = "tvShow";
+            makeCall(mediaType, mediaQuery);
+            toolbar.setTitle("Watch All The Things!");
 
         }
 
